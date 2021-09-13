@@ -4,7 +4,7 @@ pragma solidity 0.8.0;
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract SimpleStorage {
-  // using ECDSA for bytes32;
+  using ECDSA for bytes32;
   uint storedData;
   address tomatch = 0xA8D4A3AbB79c77A6c7176C9579185b49f99e3b06;
 
@@ -18,6 +18,15 @@ contract SimpleStorage {
 
   event test_value(address value1);
 
+  bytes32 public DOMAIN_SEPARATOR = keccak256(
+            abi.encode(
+                keccak256("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),
+                keccak256(bytes("name")),
+                keccak256(bytes("1")),
+                1337,
+                0xC4ceaC808B8a909CCED3849eCc90FB1cB7cdcD96)
+            );
+  bytes32 public PRESALE_TYPEHASH = keccak256("set(address buyer)");
   // function splitSignature(bytes memory sig)
   //       public
   //       pure
@@ -57,12 +66,17 @@ contract SimpleStorage {
     return ecrecover(messageHash, v, r, s);
   }
 
-  function testSigner(bytes memory signature) external view returns (bool) {
-    bytes32 temp = keccak256(abi.encode("fsdf"));
-    bytes32 hash = ECDSA.toEthSignedMessageHash(temp);
-    address recoveredAddr = ECDSA.recover(hash, signature);
+  function testSigner(bytes memory signature) external view returns (address) {
+    bytes32 digest = keccak256(
+            abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, keccak256(abi.encode(PRESALE_TYPEHASH, 0xC832FF11B06801c3d81CcBe7708AFb62B72e312f))));
+
+    address recoveredAddress = digest.recover(signature);
+
+    // bytes32 temp = keccak256(abi.encode("fsdf"));
+    // bytes32 hash = ECDSA.toEthSignedMessageHash(temp);
+    // address recoveredAddr = ECDSA.recover(hash, signature);
   
-    return (recoveredAddr == tomatch);
+    return recoveredAddress;
   }
 
   function executeSetIfSignatureMatch(

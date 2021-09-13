@@ -60,7 +60,7 @@ contract("SimpleStorage", accounts => {
     types = {
       set:[
         {name:"buyer",type:"address"}
-      ]
+      ],
     };
 
     value = {
@@ -73,5 +73,10 @@ contract("SimpleStorage", accounts => {
     const splitsecond = ethers.utils.splitSignature(sig_second);
     const actualsecond = await simpleStorageInstance.recover(hash_second, splitsecond.v, splitsecond.r, splitsecond.s);
     console.log("recovered second  address from ecrecover:", actualsecond);
+
+    const third = await simpleStorageInstance.testSigner(sig_second);
+    console.log("test signer: ", third);
+
+
   })
 });
